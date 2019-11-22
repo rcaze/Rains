@@ -1,25 +1,40 @@
 from pydub import AudioSegment
 from numpy import random
 
-def rain(dur, ndrops, drop):
+def build_drops(downv, upv, directory= "/home/rcaze/Documents/Musique/",
+                keyword = "Enregistrement_"):
     """
-    Generate rain sound using a single wav file
+    Generate a list of drop sounds from  catalogs of wav files
     """
-    silence = AudioSegment.silent(duration=dur)
-    drop_time = random.rand()
-    out = silence.overlay(drop, position=drop_time*len(silence))
-    for i in range(ndrops):
-        drop_time = random.rand()
-        out = out.overlay(drop, position=drop_time*len(silence))
+    drops = []
+    for i in range(downv, upv):
+        drops.append(AudioSegment.from_wav(directory+keyword+str(i)+".wav"))
+    return drops
+
+
+def rain(durs, ndrops, drops):
+    """
+    Generate rain sound with different length of time and concatenate them
+    """
+    out = AudioSegment.silent(duration=sum(durs))
+    for i, dur in enumerate(durs):
+        for ndrop in range(ndrops[i]):
+            n = random.randint(len(drops))
+            drop = drops[n]
+            out = out.overlay(drop,
+                              position=random.randint(sum(durs[:i]),
+                                                      sum(durs[:i+1])))
     return out
 
+
 def last():
-    """Function for nice folding in vim"""
     pass
 
 if __name__ == "__main__":
-    dur = 10000
-    ndrops = 300
-    drop = AudioSegment.from_wav("/home/rcaze/Documents/Musique/Si0.wav")
-    out = rain(dur, ndrops, drop)
-    out.export("B-rain.wav", format="wav")
+    durs = [1000 for i in range(20)]
+    ndrops = [i*2 for i in range(20)]
+    drops = build_drops(0, 3, keyword="Si")
+    out = rain(durs, ndrops, drops)
+    out.export("Rains/BsComingRain.wav", format="wav")
+
+
