@@ -9,34 +9,62 @@ def build_drops(drop_multp, drops):
     return drops * drop_multp
 
 
-def rain_core(dur, drops):
+def rain_core(durs, dropss):
     """
     Generate rain sound with different length of time and concatenate them
     """
-    out = AudioSegment.silent(duration=dur)
-    pos = random.randint(0, dur, len(drops))
+    out = AudioSegment.silent(duration=sum(durs))
+    # Pre-compute the drops time position
+    pos = random.randint(0, durs[0], len(dropss[0]))
+    t0 = durs[0]
+    for i, dur in enumerate(durs[1:]):
+        pos = np.concatenate((pos,
+                              random.randint(t0,
+                                             t0+dur,
+                                             len(dropss[i+1]))))
+        t0 += dur
+
+    # Flatten the dropss
+    drops=[]
+    for d in dropss:
+        drops += d
+
+    # Overlay the drops
     for i, drop in enumerate(drops):
         out = out.overlay(drop, position=pos[i])
     return out
-
-
-def match_target_amplitude(sound, target_dBFS):
-    """
-    Normalize a sound to avoid saturation
-    """
-    change_in_dBFS = target_dBFS - sound.dBFS
-    return sound.apply_gain(change_in_dBFS)
-
 
 def last():
     pass
 
 if __name__ == "__main__":
-    #drops = [AudioSegment.from_wav('Enregistrement_%i.wav'%i) for i in range(97, 104)]
-    #
-    gain_r = 5
-    drops = [AudioSegment.from_file('samples/La0.wav', channel=i) for i in range(gain_r)]
-    drops = build_drops(20, drops)
-    out = rain_core(8000, drops)
-    out = match_target_amplitude(out, -30)
-    out.export("rains/LaPluie.wav", format="wav")
+    sc = AudioSegment.from_file('samples/C_major_scale.mid.ogg')
+    keys = [sc[1000*i:1000*(i+1)] for i in range(8)]
+
+    dropss = [[keys[0]]*100, [], [keys[0]]*100]
+    out = rain_core([10000 for i in range(3)], dropss)
+    out.export("rains/PluieDeDo.wav", format="wav")
+
+    do_nuanced = [keys[0].apply_gain(i) for i in range(5)]
+    random.shuffle(do_nuanced)
+    dropss = [do_nuanced*i for i in range(10)]
+    out = rain_core([5000 for i in range(10)], dropss)
+    out.export("rains/LaPluieArrive.wav", format="wav")
+
+    dropss = [[keys[i]]*50 for i in range(8)]
+    out = rain_core([5000 for i in range(8)], dropss)
+    out.export("rains/PluieDeGamme.wav", format="wav")
+
+    dropss = [[keys[0]]*60,
+              [keys[0], keys[2]]*30,
+              [keys[0], keys[2], keys[4]]*20]
+    out = rain_core([10000 for i in range(3)], dropss)
+    out.export("rains/PluieD'arpège.wav", format="wav")
+
+    """
+    We use here different gain for the same Key falling bringing more texture
+    do_nuanced = [keys[0].apply_gain(i) for i in range(5)]
+    random.shuffle(do_nuanced)
+    dropss = [[keys[0]]*100, do_nuanced*20]
+    out = rain_core([10000, 10000], dropss)
+    """
