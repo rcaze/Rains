@@ -26,7 +26,16 @@ def last():
     pass
 
 if __name__ == "__main__":
-    beat = AudioSegment.from_file('samples/benboncan__heartbeat.wav')
+    beat = AudioSegment.from_file('samples/nspectorj__heartbeat-.wav')
+    beat = beat[:700]
+    tempo = 60
+    dur = 20000
+    out1 = metronome([beat]*15, dur, tempo, 0)
+    out2 = metronome([beat]*15, dur, tempo, 100)
+    out = out1 + out2
+    out.export("metronome/HeartBeat.wav", format="wav")
+
+    """
     sc = AudioSegment.from_file('samples/C_major_scale.mid.ogg')
     mi = AudioSegment.from_file('samples/pacway__mi-e.m4a')
     sol = AudioSegment.from_file('samples/pacway__sol-g.m4a')
@@ -36,11 +45,10 @@ if __name__ == "__main__":
     beat = beat[400:950]
     dur = 6500 # duration of the beat in ms
     freq = 60 # Frequency of the beat in Hz
-    #scale = 20 # The scale of the normal distribution
-    #out = metronome([beat], dur, freq, scale)
     out0 = metronome([do, mi, sol, mi, do], dur, freq, 0)
     out1 = metronome([do, mi, sol, mi, do], dur, freq, 100)
     out2 = metronome([do, mi, sol, mi, do], dur, freq, 0)
     out3 = metronome([do, mi, sol, mi, do], dur, freq, 100)
     out = out0 + out1 + out2 + out3
     out.export("metronome/Carpegio.wav", format="wav")
+    """
